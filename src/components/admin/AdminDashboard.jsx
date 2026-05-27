@@ -9,6 +9,7 @@ import {
 	IconQrcode,
 	IconSparkles,
 } from "@tabler/icons-react";
+import useSelectedRestaurant from "../../hooks/useSelectedRestaurant.js";
 
 const StatCard = ({ title, value, subtitle, icon: Icon, tone = "gray" }) => {
 	const toneClasses = {
@@ -38,7 +39,8 @@ const StatCard = ({ title, value, subtitle, icon: Icon, tone = "gray" }) => {
 	);
 };
 
-export default function AdminDashboard({ selectedRestaurant }) {
+export default function AdminDashboard() {
+	const { selected: selectedRestaurant } = useSelectedRestaurant();
 	const menus = selectedRestaurant?.menus || [];
 	const activeMenu = menus.find((m) => m.isActive) || menus[0];
 	const categories = activeMenu?.categories || [];

@@ -2,7 +2,7 @@ export default function SettingsHome({ items, onSelectPage }) {
 	return (
 		<div className="space-y-3">
 			{items.map((item) => {
-				const ItemIcon = item.icon;
+				const ItemIcon = item.icon ?? (() => null);
 
 				return (
 					<button

@@ -85,9 +85,7 @@ export default function Header({
 						<h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
 							{selectedRestaurant.name}
 						</h1>
-						<p className="mx-auto mt-4 max-w-xl text-sm text-gray-300 sm:text-base">
-							{selectedRestaurant.description}
-						</p>
+						<p className="mx-auto mt-4 max-w-xl text-sm text-gray-300 sm:text-base"></p>
 					</div>
 				</div>
 				{categories.length > 0 && (

@@ -1,9 +1,13 @@
-export function formatCurrency(value) {
-	return new Intl.NumberFormat("es-ES", {
+export function formatCurrency(
+	value,
+	{ locale = "es-AR", currency = "ARS", maximumFractionDigits = 0 } = {},
+) {
+	const amount = typeof value === "number" ? value : Number(value ?? 0);
+	return new Intl.NumberFormat(locale, {
 		style: "currency",
-		currency: "USD",
-		maximumFractionDigits: 1,
-	}).format(value);
+		currency,
+		maximumFractionDigits,
+	}).format(amount);
 }
 
 export function createId(prefix) {

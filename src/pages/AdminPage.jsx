@@ -1,30 +1,29 @@
 import { useState } from "react";
-import {
-	Header,
-	AdminHamburgerMenu,
-	AdminDashboard,
-	AdminChartNew,
-	AdminSettings,
-} from "../components";
+import { Navigate, useLocation, Outlet } from "react-router-dom";
+import { Header, AdminHamburgerMenu } from "../components";
+import { useAdmin } from "../contexts/AdminContext.jsx";
+import useAuth from "../hooks/useAuth.js";
 
-export default function AdminPage({
-	restaurants,
-	selectedSlug,
-	updateRestaurantField,
-	addMenu,
-	updateMenuField,
-	removeMenu,
-	updateCategoryField,
-	reorderCategory,
-	addCategory,
-	removeCategory,
-	addDish,
-	updateDishField,
-	reorderDish,
-	removeDish,
-	isPublished,
-	setIsPublished,
-}) {
+export default function AdminPage({ selectedSlug }) {
+	const {
+		restaurants,
+		updateRestaurantField,
+		addMenu,
+		updateMenuField,
+		removeMenu,
+		updateCategoryField,
+		reorderCategory,
+		addCategory,
+		removeCategory,
+		addDish,
+		updateDishField,
+		reorderDish,
+		removeDish,
+		isPublished,
+		setIsPublished,
+	} = useAdmin();
+	const { signOut } = useAuth();
+
 	const selectedRestaurant =
 		restaurants.find((restaurant) => restaurant.slug === selectedSlug) ??
 		restaurants[0];
@@ -35,11 +34,21 @@ export default function AdminPage({
 		menus: selectedRestaurant?.menus || [],
 	};
 
-	const [activeSection, setActiveSection] = useState("dashboard");
 	const [adminMenuOpen, setAdminMenuOpen] = useState(false);
 	const [activeMenuId, setActiveMenuId] = useState(
 		safeRestaurant.menus[0]?.id || null,
 	);
+
+	const location = useLocation();
+	const adminActiveSection = (() => {
+		try {
+			const parts = location.pathname.split("/").filter(Boolean);
+			// parts = ["admin", ":slug", "section", ...]
+			return parts[2] || "dashboard";
+		} catch {
+			return null;
+		}
+	})();
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -49,59 +58,22 @@ export default function AdminPage({
 				categories={[]}
 				adminMenuOpen={adminMenuOpen}
 				onAdminMenuToggle={() => setAdminMenuOpen(!adminMenuOpen)}
-				adminActiveSection={activeSection}
+				adminActiveSection={adminActiveSection}
 			/>
 
 			{/* Layout con Hamburger Menu/Sidebar */}
 			<div className="flex flex-col lg:flex-row">
 				{/* Hamburger Menu/Sidebar */}
 				<AdminHamburgerMenu
-					activeSection={activeSection}
-					setActiveSection={(section) => {
-						setActiveSection(section);
-						setAdminMenuOpen(false);
-					}}
+					selectedSlug={selectedSlug}
 					isOpen={adminMenuOpen}
+					onLogout={signOut}
 				/>
 
 				{/* Main Content */}
 				<main className="flex-1 w-full pt-4 lg:pt-0">
 					<div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:ml-0">
-						{/* Dashboard Section */}
-						{activeSection === "dashboard" && (
-							<AdminDashboard selectedRestaurant={safeRestaurant} />
-						)}
-
-						{/* Chart/Menu Management Section */}
-						{activeSection === "chart" && (
-							<AdminChartNew
-								selectedRestaurant={safeRestaurant}
-								activeMenuId={activeMenuId}
-								setActiveMenuId={setActiveMenuId}
-								updateRestaurantField={updateRestaurantField}
-								addMenu={addMenu}
-								updateMenuField={updateMenuField}
-								removeMenu={removeMenu}
-								updateCategoryField={updateCategoryField}
-								reorderCategory={reorderCategory}
-								addCategory={addCategory}
-								removeCategory={removeCategory}
-								addDish={addDish}
-								updateDishField={updateDishField}
-								reorderDish={reorderDish}
-								removeDish={removeDish}
-								isPublished={isPublished}
-								setIsPublished={setIsPublished}
-							/>
-						)}
-
-						{/* Settings Section */}
-						{activeSection === "settings" && (
-							<AdminSettings
-								selectedRestaurant={safeRestaurant}
-								updateRestaurantField={updateRestaurantField}
-							/>
-						)}
+						<Outlet />
 					</div>
 				</main>
 			</div>

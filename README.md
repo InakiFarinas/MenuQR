@@ -16,11 +16,6 @@ npm install && npm run dev
 - Public menu (specific): http://localhost:5173/el-rincon-paisa/bebidas
 - Admin panel: http://localhost:5173/admin/el-rincon-paisa
 
-## AI Documentation
-
-→ **[AI_SPEC.md](AI_SPEC.md)** - Technical specification  
-→ **[ROUTING_ARCHITECTURE.md](ROUTING_ARCHITECTURE.md)** - URL structure
-
 ## Commands
 
 ```bash
@@ -36,10 +31,8 @@ npm run lint       # Code quality
 ✅ Admin panel (hamburger menu mobile)  
 ✅ Dashboard with metrics  
 ✅ Mobile-first design  
-✅ Tailwind CSS v4  
+✅ Tailwind CSS v4
 
 ⚠️ **Note**: No backend (data in memory only)
 
 ---
-
-**For AI agents**: Start with [AI_SPEC.md](AI_SPEC.md)

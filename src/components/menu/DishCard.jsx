@@ -1,4 +1,5 @@
 import { IconPhoto } from "@tabler/icons-react";
+import { formatCurrency } from "../../utils/menu.js";
 
 const DishCard = ({ dish, isActive = true, compact = false }) => {
 	if (!dish) return null;
@@ -16,6 +17,10 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 							src={image}
 							alt={name}
 							className="h-full w-full object-cover"
+							loading="lazy"
+							decoding="async"
+							width={64}
+							height={64}
 						/>
 					) : (
 						<div className="flex h-full items-center justify-center text-gray-400">
@@ -32,7 +37,9 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 						<p className="text-sm text-gray-600 truncate">{description}</p>
 					) : null}
 					{price != null && (
-						<p className="mt-2 text-sm font-semibold text-gray-950">${price}</p>
+						<p className="mt-2 text-sm font-semibold text-gray-950">
+							{formatCurrency(price)}
+						</p>
 					)}
 				</div>
 
@@ -75,6 +82,10 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 						className="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"
 						src={image}
 						alt={name}
+						loading="lazy"
+						decoding="async"
+						width={192}
+						height={192}
 					/>
 				) : (
 					<div className="flex h-full items-center justify-center text-gray-400">

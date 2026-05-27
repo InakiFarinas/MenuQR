@@ -4,6 +4,9 @@ import AdminDishesList from "./AdminDishesList.jsx";
 import DishEditModal from "./DishEditModal.jsx";
 import ConfirmDeleteModal from "../common/ConfirmDeleteModal.jsx";
 import useAdminChartFlow from "../../hooks/useAdminChartFlow.js";
+import useSelectedRestaurant from "../../hooks/useSelectedRestaurant.js";
+import { useAdmin } from "../../contexts/AdminContext.jsx";
+import { useState } from "react";
 import {
 	Breadcrumb,
 	BreadcrumbList,
@@ -13,22 +16,11 @@ import {
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export default function AdminChartNew({
-	selectedRestaurant,
-	activeMenuId,
-	setActiveMenuId,
-	addMenu,
-	updateMenuField,
-	removeMenu,
-	updateCategoryField,
-	reorderCategory,
-	addCategory,
-	removeCategory,
-	addDish,
-	updateDishField,
-	reorderDish,
-	removeDish,
-}) {
+export default function AdminChartNew() {
+	const { selected: selectedRestaurant } = useSelectedRestaurant();
+	const admin = useAdmin();
+	const [activeMenuId, setActiveMenuId] = useState(null);
+
 	const {
 		screen,
 		activeCategoryId,
@@ -50,10 +42,10 @@ export default function AdminChartNew({
 		selectedRestaurant,
 		activeMenuId,
 		setActiveMenuId,
-		updateDishField,
-		removeMenu,
-		removeCategory,
-		removeDish,
+		updateDishField: admin.updateDishField,
+		removeMenu: admin.removeMenu,
+		removeCategory: admin.removeCategory,
+		removeDish: admin.removeDish,
 	});
 
 	return (
@@ -120,8 +112,10 @@ export default function AdminChartNew({
 				<AdminMenusList
 					restaurant={selectedRestaurant}
 					onSelectMenu={handleSelectMenu}
-					onAddMenu={() => addMenu(selectedRestaurant.id, setActiveMenuId)}
-					updateMenuField={updateMenuField}
+					onAddMenu={() =>
+						admin.addMenu(selectedRestaurant.id, setActiveMenuId)
+					}
+					updateMenuField={admin.updateMenuField}
 					removeMenu={handleDeleteMenu}
 				/>
 			)}
@@ -132,11 +126,11 @@ export default function AdminChartNew({
 					activeMenuId={activeMenuId}
 					onSelectCategory={handleSelectCategory}
 					onBack={handleBackFromCategories}
-					addCategory={addCategory}
+					addCategory={admin.addCategory}
 					removeCategory={handleDeleteCategory}
-					updateCategoryField={updateCategoryField}
-					reorderCategory={reorderCategory}
-					updateMenuField={updateMenuField}
+					updateCategoryField={admin.updateCategoryField}
+					reorderCategory={admin.reorderCategory}
+					updateMenuField={admin.updateMenuField}
 				/>
 			)}
 
@@ -147,10 +141,10 @@ export default function AdminChartNew({
 					activeCategoryId={activeCategoryId}
 					onBack={handleBackFromDishes}
 					onEditDish={handleEditDish}
-					addDish={addDish}
-					updateDishField={updateDishField}
-					reorderDish={reorderDish}
-					removeDish={removeDish}
+					addDish={admin.addDish}
+					updateDishField={admin.updateDishField}
+					reorderDish={admin.reorderDish}
+					removeDish={admin.removeDish}
 				/>
 			)}
 

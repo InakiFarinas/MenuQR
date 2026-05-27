@@ -4,16 +4,18 @@ import {
 	IconMenuOrder,
 	IconSettings2,
 } from "@tabler/icons-react";
+import { NavLink } from "react-router-dom";
 
-export default function AdminHamburgerMenu({
-	activeSection,
-	setActiveSection,
-	isOpen,
-}) {
+export default function AdminHamburgerMenu({ selectedSlug, isOpen, onLogout }) {
 	const sections = [
-		{ id: "dashboard", label: "Inicio", icon: IconLayoutDashboard },
-		{ id: "chart", label: "Carta", icon: IconMenuOrder },
-		{ id: "settings", label: "Ajustes", icon: IconSettings2 },
+		{
+			id: "dashboard",
+			label: "Inicio",
+			icon: IconLayoutDashboard,
+			to: `dashboard`,
+		},
+		{ id: "chart", label: "Carta", icon: IconMenuOrder, to: `chart` },
+		{ id: "settings", label: "Ajustes", icon: IconSettings2, to: `settings` },
 	];
 
 	return (
@@ -29,16 +31,19 @@ export default function AdminHamburgerMenu({
 					<nav className="space-y-2">
 						{sections.map((section) => {
 							const SectionIcon = section.icon;
+							const to = `/admin/${selectedSlug}/${section.to}`;
 
 							return (
-								<button
+								<NavLink
 									key={section.id}
-									onClick={() => setActiveSection(section.id)}
-									className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition-all ${
-										activeSection === section.id
-											? "border-black/10 bg-gray-950 text-white shadow-sm"
-											: "border-black/5 bg-white text-gray-700 hover:border-black/10 hover:bg-black/2 hover:text-gray-950"
-									}`}
+									to={to}
+									className={({ isActive }) =>
+										`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition-all ${
+											isActive
+												? "border-black/10 bg-gray-950 text-white shadow-sm"
+												: "border-black/5 bg-white text-gray-700 hover:border-black/10 hover:bg-black/2 hover:text-gray-950"
+										}`
+									}
 								>
 									<span className="flex items-center gap-3">
 										<SectionIcon size={18} stroke={1.8} />
@@ -49,10 +54,20 @@ export default function AdminHamburgerMenu({
 										stroke={1.8}
 										className="opacity-60"
 									/>
-								</button>
+								</NavLink>
 							);
 						})}
 					</nav>
+
+					{onLogout ? (
+						<button
+							type="button"
+							onClick={onLogout}
+							className="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 transition hover:bg-red-100"
+						>
+							Cerrar sesión
+						</button>
+					) : null}
 				</div>
 			</aside>
 

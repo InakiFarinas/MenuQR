@@ -59,6 +59,7 @@ export default function AdminDishesList({
 							<button
 								type="button"
 								className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-gray-400 transition hover:bg-black/3 hover:text-gray-950 active:cursor-grabbing"
+								aria-label={`Arrastrar ${dish.name}`}
 								{...getDragHandleProps(dish.id)}
 							>
 								<IconGripVertical size={19} stroke={1.8} />
@@ -98,6 +99,7 @@ export default function AdminDishesList({
 							<button
 								onClick={() => onEditDish(dish)}
 								className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-200 bg-amber-50 text-amber-700 transition hover:bg-amber-100"
+								aria-label={`Editar ${dish.name}`}
 							>
 								<IconEdit size={17} stroke={1.8} />
 							</button>
@@ -106,6 +108,7 @@ export default function AdminDishesList({
 									removeDish(dish.id);
 								}}
 								className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-red-200 bg-red-50 text-red-700 transition hover:bg-red-100"
+								aria-label={`Eliminar ${dish.name}`}
 							>
 								<IconTrash size={17} stroke={1.8} />
 							</button>
