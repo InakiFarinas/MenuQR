@@ -31,6 +31,7 @@ function toRestaurantModel(
 						id: categoryRow.id,
 						name: categoryRow.nombre,
 						description: categoryRow.descripcion ?? "",
+						available: categoryRow.activa !== false,
 						dishes,
 					};
 				});
@@ -51,11 +52,11 @@ function toRestaurantModel(
 		slug: restaurantRow.slug,
 		ownerId: restaurantRow.owner_id,
 		planId: restaurantRow.plan_id,
-		city: "",
-		accent: "orange",
+		description: restaurantRow.descripcion ?? "",
 		avatarImage: restaurantRow.logo_url ?? "",
 		avatarBackgroundImage: restaurantRow.cover_url ?? "",
-		description: "",
+		city: restaurantRow.ciudad ?? "",
+		accent: restaurantRow.accent ?? "orange",
 		menus,
 	};
 }
@@ -126,7 +127,9 @@ export async function fetchRestaurantsSummary() {
 	try {
 		const { data: restaurants, error } = await supabase
 			.from("restaurants")
-			.select("id, nombre, slug, logo_url, cover_url, owner_id, plan_id");
+			.select(
+				"id, nombre, slug, logo_url, cover_url, owner_id, plan_id, descripcion, ciudad, accent",
+			);
 
 		if (error) {
 			logError("Supabase summary query error:", error);
@@ -141,6 +144,9 @@ export async function fetchRestaurantsSummary() {
 			slug: r.slug,
 			ownerId: r.owner_id,
 			planId: r.plan_id,
+			description: r.descripcion ?? "",
+			city: r.ciudad ?? "",
+			accent: r.accent ?? "orange",
 			avatarImage: r.logo_url ?? "",
 			avatarBackgroundImage: r.cover_url ?? "",
 			// Defer menus until requested
@@ -218,6 +224,7 @@ export async function fetchRestaurantDetails(restaurantId) {
 						id: categoryRow.id,
 						name: categoryRow.nombre,
 						description: categoryRow.descripcion ?? "",
+						available: categoryRow.activa !== false,
 						dishes: dishesForCategory,
 					};
 				});

@@ -5,6 +5,7 @@ import ActionButton from "@/components/ui/ActionButton";
 import { Field, FieldContent } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import QRModal from "./QRModal.jsx";
+import AddMenuModal from "./AddMenuModal.jsx";
 
 export default function AdminMenusList({
 	restaurant,
@@ -15,7 +16,8 @@ export default function AdminMenusList({
 }) {
 	const [editingMenuId, setEditingMenuId] = useState(null);
 	const [draftName, setDraftName] = useState("");
-	const [qrMenu, setQrMenu] = useState(null); // { name, slug }
+	const [qrMenu, setQrMenu] = useState(null);
+	const [addModalOpen, setAddModalOpen] = useState(false);
 
 	function startEditing(menu) {
 		setEditingMenuId(menu.id);
@@ -85,7 +87,14 @@ export default function AdminMenusList({
 											</FieldContent>
 										</Field>
 									) : (
-										<h3 className="text-lg text-gray-950">{menu.name}</h3>
+										<>
+											<h3 className="text-lg text-gray-950">{menu.name}</h3>
+											{menu.description ? (
+												<p className="text-sm text-gray-500 mt-0.5 truncate max-w-xs">
+													{menu.description}
+												</p>
+											) : null}
+										</>
 									)}
 									<p className="text-sm text-gray-600">
 										{categoryCount} categoría{categoryCount !== 1 ? "s" : ""} ·{" "}
@@ -140,7 +149,7 @@ export default function AdminMenusList({
 				<AddCard
 					title="Agregar menú"
 					subtitle="Crear nuevo menú y categorías"
-					onClick={onAddMenu}
+					onClick={() => setAddModalOpen(true)}
 					RightIcon={IconPlus}
 				/>
 			</div>
@@ -152,6 +161,12 @@ export default function AdminMenusList({
 					onClose={() => setQrMenu(null)}
 				/>
 			)}
+
+			<AddMenuModal
+				isOpen={addModalOpen}
+				onClose={() => setAddModalOpen(false)}
+				onAdd={(data) => onAddMenu(data)}
+			/>
 		</>
 	);
 }
