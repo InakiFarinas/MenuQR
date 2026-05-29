@@ -1,6 +1,7 @@
 import supabase from "../lib/supabaseClient.js";
 import { slugify } from "../utils/menu.js";
 import { error as logError } from "../lib/logger.js";
+import { mapCategoryRow, mapDishRow } from "../utils/restaurantMappers.js";
 
 function toRestaurantModel(
 	restaurantRow,
@@ -18,22 +19,9 @@ function toRestaurantModel(
 					const dishes = dishesRows
 						.filter((dish) => dish.categoria_id === categoryRow.id)
 						.sort((left, right) => (left.orden ?? 0) - (right.orden ?? 0))
-						.map((dishRow) => ({
-							id: dishRow.id,
-							name: dishRow.nombre,
-							description: dishRow.descripcion ?? "",
-							price: Number(dishRow.precio ?? 0),
-							available: dishRow.disponible !== false,
-							image: dishRow.imagen_url ?? "",
-						}));
+						.map(mapDishRow);
 
-					return {
-						id: categoryRow.id,
-						name: categoryRow.nombre,
-						description: categoryRow.descripcion ?? "",
-						available: categoryRow.activa !== false,
-						dishes,
-					};
+					return { ...mapCategoryRow(categoryRow), dishes };
 				});
 
 			return {
@@ -52,10 +40,8 @@ function toRestaurantModel(
 		slug: restaurantRow.slug,
 		ownerId: restaurantRow.owner_id,
 		planId: restaurantRow.plan_id,
-		description: restaurantRow.descripcion ?? "",
 		avatarImage: restaurantRow.logo_url ?? "",
 		avatarBackgroundImage: restaurantRow.cover_url ?? "",
-		city: restaurantRow.ciudad ?? "",
 		accent: restaurantRow.accent ?? "orange",
 		menus,
 	};
@@ -92,7 +78,7 @@ async function fetchFromSupabase() {
 
 		if (!restaurants) return null;
 
-		const assembled = restaurants.map((restaurantRow) =>
+		return restaurants.map((restaurantRow) =>
 			toRestaurantModel(
 				restaurantRow,
 				menus || [],
@@ -100,8 +86,6 @@ async function fetchFromSupabase() {
 				dishes || [],
 			),
 		);
-
-		return assembled;
 	} catch (err) {
 		logError("Supabase fetch error:", err);
 		return null;
@@ -110,25 +94,18 @@ async function fetchFromSupabase() {
 
 export async function fetchRestaurants() {
 	const remote = await fetchFromSupabase();
-
-	if (remote && Array.isArray(remote) && remote.length > 0) {
-		return remote;
-	}
-
-	// No mock available: return empty array
-	return [];
+	return remote && Array.isArray(remote) && remote.length > 0 ? remote : [];
 }
 
 export default { fetchRestaurants };
 
-// Lightweight summary: only fields needed for listing
 export async function fetchRestaurantsSummary() {
 	if (!supabase) return [];
 	try {
 		const { data: restaurants, error } = await supabase
 			.from("restaurants")
 			.select(
-				"id, nombre, slug, logo_url, cover_url, owner_id, plan_id, descripcion, ciudad, accent",
+				"id, nombre, slug, logo_url, cover_url, owner_id, plan_id, accent",
 			);
 
 		if (error) {
@@ -136,20 +113,15 @@ export async function fetchRestaurantsSummary() {
 			return [];
 		}
 
-		// removed debug logs
-
 		return (restaurants || []).map((r) => ({
 			id: r.id,
 			name: r.nombre,
 			slug: r.slug,
 			ownerId: r.owner_id,
 			planId: r.plan_id,
-			description: r.descripcion ?? "",
-			city: r.ciudad ?? "",
 			accent: r.accent ?? "orange",
 			avatarImage: r.logo_url ?? "",
 			avatarBackgroundImage: r.cover_url ?? "",
-			// Defer menus until requested
 			menus: [],
 		}));
 	} catch (err) {
@@ -158,7 +130,6 @@ export async function fetchRestaurantsSummary() {
 	}
 }
 
-// Fetch menus, categories and dishes for a single restaurant
 export async function fetchRestaurantDetails(restaurantId) {
 	if (!supabase) return null;
 	try {
@@ -166,8 +137,6 @@ export async function fetchRestaurantDetails(restaurantId) {
 			.from("menus")
 			.select("*")
 			.eq("restaurante_id", restaurantId);
-
-		// removed debug logs
 
 		if (menusError) {
 			logError("Supabase menus query error:", menusError);
@@ -181,8 +150,6 @@ export async function fetchRestaurantDetails(restaurantId) {
 			.select("*")
 			.in("menu_id", menuIds);
 
-		// removed debug logs
-
 		if (categoriesError) {
 			logError("Supabase categories query error:", categoriesError);
 			return null;
@@ -195,15 +162,12 @@ export async function fetchRestaurantDetails(restaurantId) {
 			.select("*")
 			.in("categoria_id", categoryIds);
 
-		// removed debug logs
-
 		if (dishesError) {
 			logError("Supabase dishes query error:", dishesError);
 			return null;
 		}
 
-		// Assemble the menus structure similar to toRestaurantModel's menus mapping
-		const assembledMenus = (menus || []).map((menuRow, menuIndex) => {
+		return (menus || []).map((menuRow, menuIndex) => {
 			const categoriesForMenu = (categories || [])
 				.filter((c) => c.menu_id === menuRow.id)
 				.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
@@ -211,22 +175,9 @@ export async function fetchRestaurantDetails(restaurantId) {
 					const dishesForCategory = (dishes || [])
 						.filter((d) => d.categoria_id === categoryRow.id)
 						.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
-						.map((dishRow) => ({
-							id: dishRow.id,
-							name: dishRow.nombre,
-							description: dishRow.descripcion ?? "",
-							price: Number(dishRow.precio ?? 0),
-							available: dishRow.disponible !== false,
-							image: dishRow.imagen_url ?? "",
-						}));
+						.map(mapDishRow);
 
-					return {
-						id: categoryRow.id,
-						name: categoryRow.nombre,
-						description: categoryRow.descripcion ?? "",
-						available: categoryRow.activa !== false,
-						dishes: dishesForCategory,
-					};
+					return { ...mapCategoryRow(categoryRow), dishes: dishesForCategory };
 				});
 
 			return {
@@ -238,8 +189,6 @@ export async function fetchRestaurantDetails(restaurantId) {
 				categories: categoriesForMenu,
 			};
 		});
-
-		return assembledMenus;
 	} catch (err) {
 		logError("Supabase restaurant details fetch error:", err);
 		return null;

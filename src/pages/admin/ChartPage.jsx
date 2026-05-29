@@ -1,12 +1,9 @@
-import AdminMenusList from "../../components/admin/AdminMenusList.jsx";
-import AdminCategoriesList from "../../components/admin/AdminCategoriesList.jsx";
-import AdminDishesList from "../../components/admin/AdminDishesList.jsx";
+import { Outlet, useParams } from "react-router-dom";
 import DishEditModal from "../../components/admin/DishEditModal.jsx";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal.jsx";
 import useAdminChartFlow from "../../hooks/useAdminChartFlow.js";
 import useSelectedRestaurant from "../../hooks/useSelectedRestaurant.js";
 import { useAdmin } from "../../contexts/useAdmin.js";
-import { useState } from "react";
 import {
 	Breadcrumb,
 	BreadcrumbList,
@@ -19,11 +16,15 @@ import {
 export default function ChartPage() {
 	const { selected: selectedRestaurant } = useSelectedRestaurant();
 	const admin = useAdmin();
-	const [activeMenuId, setActiveMenuId] = useState(null);
+	const { menuSlug, categorySlug } = useParams();
+	const activeMenu = selectedRestaurant?.menus?.find(
+		(m) => m.slug === menuSlug,
+	);
+	const activeCategory = activeMenu?.categories?.find(
+		(c) => c.slug === categorySlug,
+	);
 
 	const {
-		screen,
-		activeCategoryId,
 		editingDish,
 		deleteConfirm,
 		handleSelectMenu,
@@ -40,8 +41,6 @@ export default function ChartPage() {
 		clearDeleteConfirm,
 	} = useAdminChartFlow({
 		selectedRestaurant,
-		activeMenuId,
-		setActiveMenuId,
 		updateDishField: admin.updateDishField,
 		removeMenu: admin.removeMenu,
 		removeCategory: admin.removeCategory,
@@ -50,7 +49,6 @@ export default function ChartPage() {
 
 	return (
 		<div className="bg-gray-50 min-h-screen p-4 text-gray-900">
-			{/* Breadcrumb flow: Menús -> [Menu] -> [Category] */}
 			<div className="mb-4">
 				<Breadcrumb>
 					<BreadcrumbList>
@@ -58,95 +56,61 @@ export default function ChartPage() {
 							<BreadcrumbLink asChild>
 								<button
 									type="button"
-									onClick={() => {
-										// go back to menus
-										handleBackFromCategories();
-									}}
+									onClick={handleBackFromCategories}
 									className="text-sm text-gray-600"
 								>
 									Menús
 								</button>
 							</BreadcrumbLink>
 						</BreadcrumbItem>
-						{screen !== "menus" && <BreadcrumbSeparator />}
-						{screen === "categories" && (
+
+						{activeMenu && (
 							<>
+								<BreadcrumbSeparator />
 								<BreadcrumbItem>
-									<BreadcrumbPage>
-										{selectedRestaurant.menus.find((m) => m.id === activeMenuId)
-											?.name || "Carta"}
-									</BreadcrumbPage>
+									{activeCategory ? (
+										<BreadcrumbLink asChild>
+											<button
+												type="button"
+												onClick={() => handleSelectMenu(menuSlug)}
+												className="text-sm text-gray-600"
+											>
+												{activeMenu.name}
+											</button>
+										</BreadcrumbLink>
+									) : (
+										<BreadcrumbPage>{activeMenu.name}</BreadcrumbPage>
+									)}
 								</BreadcrumbItem>
 							</>
 						)}
-						{screen === "dishes" && (
+
+						{activeCategory && (
 							<>
-								<BreadcrumbItem>
-									<BreadcrumbLink asChild>
-										<button
-											type="button"
-											onClick={() => handleSelectMenu(activeMenuId)}
-											className="text-sm text-gray-600"
-										>
-											{selectedRestaurant.menus.find(
-												(m) => m.id === activeMenuId,
-											)?.name || "Carta"}
-										</button>
-									</BreadcrumbLink>
-								</BreadcrumbItem>
 								<BreadcrumbSeparator />
 								<BreadcrumbItem>
-									<BreadcrumbPage>
-										{selectedRestaurant.menus
-											.find((m) => m.id === activeMenuId)
-											?.categories.find((c) => c.id === activeCategoryId)
-											?.name || "Categoría"}
-									</BreadcrumbPage>
+									<BreadcrumbPage>{activeCategory.name}</BreadcrumbPage>
 								</BreadcrumbItem>
 							</>
 						)}
 					</BreadcrumbList>
 				</Breadcrumb>
 			</div>
-			{screen === "menus" && (
-				<AdminMenusList
-					restaurant={selectedRestaurant}
-					onSelectMenu={handleSelectMenu}
-					onAddMenu={() =>
-						admin.addMenu(selectedRestaurant.id, setActiveMenuId)
-					}
-					updateMenuField={admin.updateMenuField}
-					removeMenu={handleDeleteMenu}
-				/>
-			)}
-
-			{screen === "categories" && (
-				<AdminCategoriesList
-					restaurant={selectedRestaurant}
-					activeMenuId={activeMenuId}
-					onSelectCategory={handleSelectCategory}
-					onBack={handleBackFromCategories}
-					addCategory={admin.addCategory}
-					removeCategory={handleDeleteCategory}
-					updateCategoryField={admin.updateCategoryField}
-					reorderCategory={admin.reorderCategory}
-					updateMenuField={admin.updateMenuField}
-				/>
-			)}
-
-			{screen === "dishes" && (
-				<AdminDishesList
-					restaurant={selectedRestaurant}
-					activeMenuId={activeMenuId}
-					activeCategoryId={activeCategoryId}
-					onBack={handleBackFromDishes}
-					onEditDish={handleEditDish}
-					addDish={admin.addDish}
-					updateDishField={admin.updateDishField}
-					reorderDish={admin.reorderDish}
-					removeDish={admin.removeDish}
-				/>
-			)}
+			<Outlet
+				context={{
+					selectedRestaurant,
+					admin,
+					menuSlug,
+					categorySlug,
+					handleSelectMenu,
+					handleSelectCategory,
+					handleBackFromCategories,
+					handleBackFromDishes,
+					handleEditDish,
+					handleDeleteMenu,
+					handleDeleteCategory,
+				}}
+			/>
 
 			{editingDish && (
 				<DishEditModal

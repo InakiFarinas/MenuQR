@@ -15,6 +15,9 @@ import {
 	InvoicesWrapper,
 	LocalWrapper,
 	SettingsIndexWrapper,
+	MenusWrapper,
+	CategoriesWrapper,
+	DishesWrapper,
 } from "./routes/admin/index.js";
 import ChartPage from "./pages/admin/ChartPage.jsx";
 
@@ -119,7 +122,11 @@ export default function App() {
 				<Route path="/admin/:slug/*" element={<KeyedAdminRoute />}>
 					<Route index element={<Navigate to="dashboard" replace />} />
 					<Route path="dashboard" element={<DashboardPage />} />
-					<Route path="chart" element={<ChartPage />} />
+					<Route path="chart" element={<ChartPage />}>
+						<Route index element={<MenusWrapper />} />
+						<Route path=":menuSlug" element={<CategoriesWrapper />} />
+						<Route path=":menuSlug/:categorySlug" element={<DishesWrapper />} />
+					</Route>
 					<Route path="settings" element={<SettingsPage />}>
 						<Route index element={<SettingsIndexWrapper />} />
 						<Route path="local" element={<LocalWrapper />} />

@@ -1,18 +1,22 @@
-import { IconPhoto } from "@tabler/icons-react";
+import { useState } from "react";
 import { formatCurrency } from "../../utils/menu.js";
+import photoQuestionFallback from "../../assets/photo-question.svg";
 
 const DishCard = ({ dish, isActive = true, compact = false }) => {
+	const [imageError, setImageError] = useState(false);
+
 	if (!dish) return null;
 
 	const { name, description, price, image } = dish;
 
 	const inactiveClass = isActive ? "" : "opacity-60 grayscale";
+	const showImage = image && !imageError;
 
 	if (compact) {
 		return (
 			<div className={`flex items-center gap-4 ${inactiveClass}`}>
 				<div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-black/3">
-					{image ? (
+					{showImage ? (
 						<img
 							src={image}
 							alt={name}
@@ -21,10 +25,16 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 							decoding="async"
 							width={64}
 							height={64}
+							onError={() => setImageError(true)}
 						/>
 					) : (
 						<div className="flex h-full items-center justify-center text-gray-400">
-							<IconPhoto size={24} stroke={1.6} />
+							<img
+								src={photoQuestionFallback}
+								alt=""
+								aria-hidden="true"
+								className="h-64 w-64"
+							/>
 						</div>
 					)}
 				</div>
@@ -79,7 +89,7 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 			</div>
 
 			<div className="relative w-32 shrink-0 bg-black/3 sm:w-44 lg:w-48">
-				{image ? (
+				{showImage ? (
 					<img
 						className="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"
 						src={image}
@@ -88,10 +98,16 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 						decoding="async"
 						width={192}
 						height={192}
+						onError={() => setImageError(true)}
 					/>
 				) : (
 					<div className="flex h-full items-center justify-center text-gray-400">
-						<IconPhoto size={28} stroke={1.6} />
+						<img
+							src={photoQuestionFallback}
+							alt=""
+							aria-hidden="true"
+							className="h-6 w-6 sm:h-7 sm:w-7"
+						/>
 					</div>
 				)}
 			</div>

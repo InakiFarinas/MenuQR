@@ -161,23 +161,6 @@ export default function LocalPage({
 				</div>
 				<div>
 					<label className="mb-2 block text-sm font-medium text-gray-900">
-						Descripción
-					</label>
-					<textarea
-						value={selectedRestaurant.description}
-						onChange={(e) =>
-							updateRestaurantField(
-								selectedRestaurant.id,
-								"description",
-								e.target.value,
-							)
-						}
-						rows="3"
-						className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-gray-950 shadow-sm focus:outline-none focus:ring-4 focus:ring-black/5"
-					/>
-				</div>
-				<div>
-					<label className="mb-2 block text-sm font-medium text-gray-900">
 						Imagen de fondo del avatar
 					</label>
 					<input

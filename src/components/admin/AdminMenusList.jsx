@@ -58,10 +58,10 @@ export default function AdminMenusList({
 						return (
 							<div
 								key={menu.id}
-								onClick={() => onSelectMenu(menu.id)}
-								className="flex cursor-pointer items-center gap-3 rounded-[1.25rem] border border-black/5 bg-white/90 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(15,23,42,0.06)]"
+								onClick={() => onSelectMenu(menu.slug)}
+								className="flex cursor-pointer flex-col items-stretch gap-2 rounded-[1.25rem] border border-black/5 bg-white/90 p-3 transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4"
 							>
-								<div className="flex-1">
+								<div className="min-w-0 flex-1">
 									{editingMenuId === menu.id ? (
 										<Field orientation="horizontal">
 											<FieldContent>
@@ -88,58 +88,62 @@ export default function AdminMenusList({
 										</Field>
 									) : (
 										<>
-											<h3 className="text-lg text-gray-950">{menu.name}</h3>
+											<h3 className="text-base font-medium text-gray-950 sm:text-lg">
+												{menu.name}
+											</h3>
 											{menu.description ? (
-												<p className="text-sm text-gray-500 mt-0.5 truncate max-w-xs">
+												<p className="mt-0.5 max-w-xs truncate text-sm text-gray-500 sm:max-w-md">
 													{menu.description}
 												</p>
 											) : null}
 										</>
 									)}
-									<p className="text-sm text-gray-600">
+								</div>
+								<div className="flex items-center justify-between gap-3 sm:min-w-[15rem] sm:justify-end sm:gap-4">
+									<p className="whitespace-nowrap text-sm text-gray-600 sm:text-right">
 										{categoryCount} categoría{categoryCount !== 1 ? "s" : ""} ·{" "}
 										{dishCount} plato{dishCount !== 1 ? "s" : ""}
 									</p>
-								</div>
-								<div className="flex items-center gap-2">
-									<ActionButton
-										type="qr"
-										icon={IconQrcode}
-										onClick={(e) => {
-											e.stopPropagation();
-											setQrMenu({ name: menu.name, slug: menu.slug });
-										}}
-										aria-label="Ver QR del menú"
-									/>
-									<ActionButton
-										type="edit"
-										icon={IconEdit}
-										onClick={(e) => {
-											e.stopPropagation();
-											if (editingMenuId === menu.id) {
-												commitEditing(menu.id);
-											} else {
-												startEditing(menu);
+									<div className="flex items-center gap-2">
+										<ActionButton
+											type="qr"
+											icon={IconQrcode}
+											onClick={(e) => {
+												e.stopPropagation();
+												setQrMenu({ name: menu.name, slug: menu.slug });
+											}}
+											aria-label="Ver QR del menú"
+										/>
+										<ActionButton
+											type="edit"
+											icon={IconEdit}
+											onClick={(e) => {
+												e.stopPropagation();
+												if (editingMenuId === menu.id) {
+													commitEditing(menu.id);
+												} else {
+													startEditing(menu);
+												}
+											}}
+											aria-label={
+												editingMenuId === menu.id
+													? "Guardar nombre"
+													: "Editar nombre"
 											}
-										}}
-										aria-label={
-											editingMenuId === menu.id
-												? "Guardar nombre"
-												: "Editar nombre"
-										}
-									/>
-									<ActionButton
-										type="delete"
-										icon={IconTrash}
-										onClick={(e) => {
-											e.stopPropagation();
-											if (editingMenuId === menu.id) {
-												stopEditing();
-											}
-											removeMenu(menu.id);
-										}}
-										aria-label="Eliminar menú"
-									/>
+										/>
+										<ActionButton
+											type="delete"
+											icon={IconTrash}
+											onClick={(e) => {
+												e.stopPropagation();
+												if (editingMenuId === menu.id) {
+													stopEditing();
+												}
+												removeMenu(menu.id);
+											}}
+											aria-label="Eliminar menú"
+										/>
+									</div>
 								</div>
 							</div>
 						);
