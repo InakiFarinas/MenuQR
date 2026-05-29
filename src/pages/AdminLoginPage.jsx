@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
 import { IconLock, IconLogin } from "@tabler/icons-react";
-import supabase from "../lib/supabaseClient.js";
-import useSelectedRestaurant from "../hooks/useSelectedRestaurant.js";
-import useAuth from "../hooks/useAuth.js";
 
-export default function AdminLoginPage() {
-	const navigate = useNavigate();
-	const { selected: selectedRestaurant } = useSelectedRestaurant();
-	const { session, signOut } = useAuth();
+export default function AdminLoginPage({
+	selectedRestaurant,
+	currentUserId,
+	onLogin,
+	onRegisterRestaurant,
+	onLogout,
+	onSuccess,
+}) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,103 +23,57 @@ export default function AdminLoginPage() {
 		selectedRestaurant?.slug || "",
 	);
 
-	if (session?.user?.id === selectedRestaurant.ownerId) {
-		return <Navigate to={`/admin/${selectedRestaurant.slug}`} replace />;
-	}
+	const isOwner = currentUserId === selectedRestaurant.ownerId;
 
 	async function handleSubmit(event) {
 		event.preventDefault();
 		setErrorMessage("");
 
-		if (!supabase) {
-			setErrorMessage("Supabase no está configurado.");
-			return;
-		}
 		setIsSubmitting(true);
 		try {
 			if (mode === "login") {
-				const { data, error } = await supabase.auth.signInWithPassword({
-					email,
-					password,
-				});
+				const { data, error } = await onLogin(email, password);
 				if (error) {
 					setErrorMessage(error.message);
 					return;
 				}
 
 				if (data.session?.user?.id !== selectedRestaurant.ownerId) {
-					await supabase.auth.signOut();
+					await onLogout();
 					setErrorMessage("Este usuario no tiene acceso a este restaurante.");
 					return;
 				}
 
-				navigate(`/admin/${selectedRestaurant.slug}`, { replace: true });
+				onSuccess(selectedRestaurant.slug);
 			} else {
-				const { error: signUpError } = await supabase.auth.signUp({
-					email,
-					password,
-				});
-				if (signUpError) {
-					setErrorMessage(signUpError.message);
-					return;
-				}
-
-				// try sign in to obtain user id (may require email confirm)
-				const { data: signInData, error: signInError } =
-					await supabase.auth.signInWithPassword({ email, password });
-				if (signInError) {
+				const { data, error, requiresConfirmation } =
+					await onRegisterRestaurant({
+						email,
+						password,
+						restaurantName,
+						restaurantSlug,
+					});
+				if (requiresConfirmation) {
 					setErrorMessage(
 						"Registro creado. Confirma tu correo y luego inicia sesión.",
 					);
 					return;
 				}
 
-				const userId = signInData.session?.user?.id;
-				if (!userId) {
-					setErrorMessage(
-						"No se pudo obtener el usuario después del registro.",
-					);
+				if (error) {
+					setErrorMessage(error.message);
 					return;
 				}
 
-				const slug = restaurantSlug || slugify(restaurantName || email);
-				const { data: insertData, error: insertError } = await supabase
-					.from("restaurants")
-					.insert([
-						{
-							nombre: restaurantName || "Mi restaurante",
-							slug,
-							owner_id: userId,
-						},
-					])
-					.select()
-					.single();
-
-				if (insertError) {
-					setErrorMessage(
-						insertError.message || "No se pudo crear el restaurante.",
-					);
-					return;
+				if (data) {
+					onSuccess(data.slug);
 				}
-
-				navigate(`/admin/${insertData.slug}`, { replace: true });
 			}
 		} catch (err) {
 			setErrorMessage(err?.message || "No se pudo completar la acción.");
 		} finally {
 			setIsSubmitting(false);
 		}
-	}
-
-	function slugify(text) {
-		return (
-			String(text)
-				.toLowerCase()
-				.trim()
-				.replace(/\s+/g, "-")
-				.replace(/[^a-z0-9-]/g, "")
-				.replace(/-+/g, "-") || Math.random().toString(36).slice(2, 8)
-		);
 	}
 
 	return (
@@ -182,8 +136,7 @@ export default function AdminLoginPage() {
 							</button>
 						</div>
 
-						{session?.user?.id &&
-						session.user.id !== selectedRestaurant.ownerId ? (
+						{currentUserId && !isOwner ? (
 							<div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
 								Ya existe una sesión iniciada con otra cuenta. Cierra sesión y
 								entra con el usuario del restaurante.
@@ -280,15 +233,13 @@ export default function AdminLoginPage() {
 							</button>
 						</form>
 
-						{signOut ? (
-							<button
-								type="button"
-								onClick={signOut}
-								className="mt-4 text-sm font-medium text-gray-500 transition hover:text-gray-950"
-							>
-								Cerrar sesión actual
-							</button>
-						) : null}
+						<button
+							type="button"
+							onClick={onLogout}
+							className="mt-4 text-sm font-medium text-gray-500 transition hover:text-gray-950"
+						>
+							Cerrar sesión actual
+						</button>
 					</div>
 				</div>
 			</div>

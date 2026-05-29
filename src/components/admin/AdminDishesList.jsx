@@ -105,7 +105,12 @@ export default function AdminDishesList({
 							</button>
 							<button
 								onClick={() => {
-									removeDish(dish.id);
+									removeDish(
+										restaurant.id,
+										activeMenuId,
+										activeCategoryId,
+										dish.id,
+									);
 								}}
 								className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-red-200 bg-red-50 text-red-700 transition hover:bg-red-100"
 								aria-label={`Eliminar ${dish.name}`}

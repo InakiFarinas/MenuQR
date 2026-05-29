@@ -1,6 +1,6 @@
-import { AdminToggle } from ".";
 import { IconGripVertical, IconPlus, IconTrash } from "@tabler/icons-react";
 import AddCard from "@/components/ui/AddCard";
+import AdminToggle from "./AdminToggle.jsx";
 import useDragReorder from "../../hooks/useDragReorder.js";
 
 export default function AdminCategoriesList({
@@ -82,7 +82,7 @@ export default function AdminCategoriesList({
 							<button
 								onClick={(e) => {
 									e.stopPropagation();
-									removeCategory(category.id);
+									removeCategory(restaurant.id, activeMenuId, category.id);
 								}}
 								className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-red-200 bg-red-50 text-red-700 transition hover:bg-red-100"
 							>
@@ -94,7 +94,9 @@ export default function AdminCategoriesList({
 				<AddCard
 					title="Agregar categoría"
 					subtitle="Agrega una nueva categoría a este menú"
-					onClick={() => addCategory(restaurant.id, activeMenuId, () => {})}
+					onClick={() =>
+						addCategory(restaurant.id, activeMenuId, onSelectCategory)
+					}
 					RightIcon={IconPlus}
 				/>
 			</div>

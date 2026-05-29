@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import LocalPage from "../../pages/admin/settings/LocalPage.jsx";
 import useSelectedRestaurant from "../../hooks/useSelectedRestaurant.js";
-import { useAdmin } from "../../contexts/AdminContext.jsx";
+import { useAdmin } from "../../contexts/useAdmin.js";
 
 export default function LocalWrapper() {
 	const { selected, slug } = useSelectedRestaurant();

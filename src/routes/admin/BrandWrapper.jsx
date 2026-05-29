@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import BrandPage from "../../pages/admin/settings/BrandPage.jsx";
 import useSelectedRestaurant from "../../hooks/useSelectedRestaurant.js";
-import { useAdmin } from "../../contexts/AdminContext.jsx";
+import { useAdmin } from "../../contexts/useAdmin.js";
 
 export default function BrandWrapper() {
 	const { selected, slug } = useSelectedRestaurant();

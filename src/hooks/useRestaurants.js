@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
 	fetchRestaurants,
 	fetchRestaurantsSummary,
-	fetchRestaurantDetails,
 } from "../services/restaurantsService.js";
 import { createId, reorderArray, slugify } from "../utils/menu.js";
 import * as restaurantMutations from "../utils/restaurantMutations.js";
@@ -15,198 +14,229 @@ export default function useRestaurants() {
 	useEffect(() => {
 		let mounted = true;
 		// Load lightweight summaries first to improve LCP
-		fetchRestaurantsSummary().then((data) => {
-			if (!mounted) return;
-			setRestaurants(data || []);
-			setIsLoading(false);
-		});
+		fetchRestaurantsSummary()
+			.then((data) => {
+				if (!mounted) return;
+				setRestaurants(data || []);
+			})
+			.catch(() => {
+				if (!mounted) return;
+				setRestaurants([]);
+			})
+			.finally(() => {
+				if (!mounted) return;
+				setIsLoading(false);
+			});
 
 		return () => {
 			mounted = false;
 		};
 	}, []);
 
-	function patchRestaurant(restaurantId, updater) {
+	const patchRestaurant = useCallback((restaurantId, updater) => {
 		setRestaurants((currentRestaurants) =>
 			currentRestaurants.map((restaurant) =>
 				restaurant.id === restaurantId ? updater(restaurant) : restaurant,
 			),
 		);
-	}
+	}, []);
 
-	function updateRestaurantField(restaurantId, field, value) {
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			[field]: value,
-		}));
-	}
+	const updateRestaurantField = useCallback(
+		(restaurantId, field, value) => {
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				[field]: value,
+			}));
+		},
+		[patchRestaurant],
+	);
 
 	// Menús
-	function addMenu(restaurantId, setActiveMenuId) {
-		const menuId = createId("menu");
-		const menuName = "Nueva Carta";
+	const addMenu = useCallback(
+		(restaurantId, setActiveMenuId) => {
+			const menuId = createId("menu");
+			const menuName = "Nueva Carta";
 
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: [
-				...restaurant.menus,
-				{
-					id: menuId,
-					name: menuName,
-					slug: slugify(menuName),
-					description: "Describe la carta aquí",
-					isActive: false,
-					categories: [],
-				},
-			],
-		}));
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: [
+					...restaurant.menus,
+					{
+						id: menuId,
+						name: menuName,
+						slug: slugify(menuName),
+						description: "Describe la carta aquí",
+						isActive: false,
+						categories: [],
+					},
+				],
+			}));
 
-		setActiveMenuId(menuId);
-	}
+			setActiveMenuId(menuId);
+		},
+		[patchRestaurant],
+	);
 
-	function updateMenuField(restaurantId, menuId, field, value) {
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: restaurant.menus.map((menu) =>
-				menu.id === menuId
-					? {
-							...menu,
-							[field]: field === "name" ? value : value,
-							...(field === "name" && { slug: slugify(value) }),
-						}
-					: menu,
-			),
-		}));
-	}
+	const updateMenuField = useCallback(
+		(restaurantId, menuId, field, value) => {
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: restaurant.menus.map((menu) =>
+					menu.id === menuId
+						? {
+								...menu,
+								[field]: value,
+								...(field === "name" && { slug: slugify(value) }),
+							}
+						: menu,
+				),
+			}));
+		},
+		[patchRestaurant],
+	);
 
-	function removeMenu(restaurantId, menuId) {
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: restaurant.menus.filter((menu) => menu.id !== menuId),
-		}));
-	}
+	const removeMenu = useCallback(
+		(restaurantId, menuId) => {
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: restaurant.menus.filter((menu) => menu.id !== menuId),
+			}));
+		},
+		[patchRestaurant],
+	);
 
 	// Categorías
-	function updateCategoryField(restaurantId, menuId, categoryId, field, value) {
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: restaurant.menus.map((menu) =>
-				menu.id === menuId
-					? {
-							...menu,
-							categories: menu.categories.map((category) =>
-								category.id === categoryId
-									? { ...category, [field]: value }
-									: category,
-							),
-						}
-					: menu,
-			),
-		}));
-	}
+	const updateCategoryField = useCallback(
+		(restaurantId, menuId, categoryId, field, value) => {
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: restaurant.menus.map((menu) =>
+					menu.id === menuId
+						? {
+								...menu,
+								categories: menu.categories.map((category) =>
+									category.id === categoryId
+										? { ...category, [field]: value }
+										: category,
+								),
+							}
+						: menu,
+				),
+			}));
+		},
+		[patchRestaurant],
+	);
 
-	function reorderCategory(restaurantId, menuId, fromCategoryId, toCategoryId) {
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: restaurant.menus.map((menu) =>
-				menu.id === menuId
-					? {
-							...menu,
-							categories: reorderArray(
-								menu.categories,
-								fromCategoryId,
-								toCategoryId,
-							),
-						}
-					: menu,
-			),
-		}));
-	}
+	const reorderCategory = useCallback(
+		(restaurantId, menuId, fromCategoryId, toCategoryId) => {
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: restaurant.menus.map((menu) =>
+					menu.id === menuId
+						? {
+								...menu,
+								categories: reorderArray(
+									menu.categories,
+									fromCategoryId,
+									toCategoryId,
+								),
+							}
+						: menu,
+				),
+			}));
+		},
+		[patchRestaurant],
+	);
 
-	function addCategory(restaurantId, menuId, setActiveCategoryId) {
-		const categoryId = createId("cat");
+	const addCategory = useCallback(
+		(restaurantId, menuId, setActiveCategoryId) => {
+			const categoryId = createId("cat");
 
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: restaurant.menus.map((menu) =>
-				menu.id === menuId
-					? {
-							...menu,
-							categories: [
-								...menu.categories,
-								{
-									id: categoryId,
-									name: "Nueva categoría",
-									description: "Describe la sección aquí",
-									dishes: [],
-								},
-							],
-						}
-					: menu,
-			),
-		}));
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: restaurant.menus.map((menu) =>
+					menu.id === menuId
+						? {
+								...menu,
+								categories: [
+									...menu.categories,
+									{
+										id: categoryId,
+										name: "Nueva categoría",
+										description: "Describe la sección aquí",
+										dishes: [],
+									},
+								],
+							}
+						: menu,
+				),
+			}));
 
-		setActiveCategoryId(categoryId);
-	}
+			setActiveCategoryId(categoryId);
+		},
+		[patchRestaurant],
+	);
 
-	function removeCategory(restaurantId, menuId, categoryId) {
-		patchRestaurant(restaurantId, (restaurant) => ({
-			...restaurant,
-			menus: restaurant.menus.map((menu) =>
-				menu.id === menuId
-					? {
-							...menu,
-							categories: menu.categories.filter(
-								(category) => category.id !== categoryId,
-							),
-						}
-					: menu,
-			),
-		}));
-	}
+	const removeCategory = useCallback(
+		(restaurantId, menuId, categoryId) => {
+			patchRestaurant(restaurantId, (restaurant) => ({
+				...restaurant,
+				menus: restaurant.menus.map((menu) =>
+					menu.id === menuId
+						? {
+								...menu,
+								categories: menu.categories.filter(
+									(category) => category.id !== categoryId,
+								),
+							}
+						: menu,
+				),
+			}));
+		},
+		[patchRestaurant],
+	);
 
 	// Platos (delegados a restaurantMutations para operaciones puras)
-	function addDish(restaurantId, menuId, categoryId) {
+	const addDish = useCallback((restaurantId, menuId, categoryId) => {
 		setRestaurants((prev) =>
 			restaurantMutations.addDish(prev, restaurantId, menuId, categoryId),
 		);
-	}
+	}, []);
 
-	function reorderDish(restaurantId, menuId, categoryId, fromDishId, toDishId) {
-		setRestaurants((prev) =>
-			restaurantMutations.reorderDish(
-				prev,
-				restaurantId,
-				menuId,
-				categoryId,
-				fromDishId,
-				toDishId,
-			),
-		);
-	}
+	const reorderDish = useCallback(
+		(restaurantId, menuId, categoryId, fromDishId, toDishId) => {
+			setRestaurants((prev) =>
+				restaurantMutations.reorderDish(
+					prev,
+					restaurantId,
+					menuId,
+					categoryId,
+					fromDishId,
+					toDishId,
+				),
+			);
+		},
+		[],
+	);
 
-	function updateDishField(
-		restaurantId,
-		menuId,
-		categoryId,
-		dishId,
-		field,
-		value,
-	) {
-		setRestaurants((prev) =>
-			restaurantMutations.updateDishField(
-				prev,
-				restaurantId,
-				menuId,
-				categoryId,
-				dishId,
-				field,
-				value,
-			),
-		);
-	}
+	const updateDishField = useCallback(
+		(restaurantId, menuId, categoryId, dishId, field, value) => {
+			setRestaurants((prev) =>
+				restaurantMutations.updateDishField(
+					prev,
+					restaurantId,
+					menuId,
+					categoryId,
+					dishId,
+					field,
+					value,
+				),
+			);
+		},
+		[],
+	);
 
-	function removeDish(restaurantId, menuId, categoryId, dishId) {
+	const removeDish = useCallback((restaurantId, menuId, categoryId, dishId) => {
 		setRestaurants((prev) =>
 			restaurantMutations.removeDish(
 				prev,
@@ -216,42 +246,36 @@ export default function useRestaurants() {
 				dishId,
 			),
 		);
-	}
+	}, []);
 
-	return {
-		restaurants,
-		isLoading,
-		isPublished,
-		setIsPublished,
-		// Refresh summaries (fast) or pass { full: true } to refetch everything
-		refresh: (options = {}) => {
-			setIsLoading(true);
-			if (options.full) {
-				fetchRestaurants().then((data) => {
+	const refresh = useCallback((options = {}) => {
+		setIsLoading(true);
+		if (options.full) {
+			fetchRestaurants()
+				.then((data) => {
 					setRestaurants(data || []);
+				})
+				.catch(() => {
+					setRestaurants([]);
+				})
+				.finally(() => {
 					setIsLoading(false);
 				});
-			} else {
-				fetchRestaurantsSummary().then((data) => {
+		} else {
+			fetchRestaurantsSummary()
+				.then((data) => {
 					setRestaurants(data || []);
+				})
+				.catch(() => {
+					setRestaurants([]);
+				})
+				.finally(() => {
 					setIsLoading(false);
 				});
-			}
-		},
+		}
+	}, []);
 
-		// Load full menus/categories/dishes for a single restaurant on demand
-		loadRestaurantDetails: async (restaurantId) => {
-			const existing = restaurants.find((r) => r.id === restaurantId);
-			if (!existing) return null;
-			if (existing.menus && existing.menus.length > 0) return existing;
-			const menus = await fetchRestaurantDetails(restaurantId);
-			if (!menus) return null;
-			patchRestaurant(restaurantId, (restaurant) => ({
-				...restaurant,
-				menus,
-			}));
-			return { ...existing, menus };
-		},
+	const adminActions = {
 		patchRestaurant,
 		updateRestaurantField,
 		addMenu,
@@ -265,5 +289,14 @@ export default function useRestaurants() {
 		reorderDish,
 		updateDishField,
 		removeDish,
+	};
+
+	return {
+		restaurants,
+		isLoading,
+		isPublished,
+		setIsPublished,
+		refresh,
+		...adminActions,
 	};
 }

@@ -6,18 +6,18 @@ import {
 } from "@tabler/icons-react";
 import { NavLink } from "react-router-dom";
 
-export default function AdminHamburgerMenu({ selectedSlug, isOpen, onLogout }) {
-	const sections = [
-		{
-			id: "dashboard",
-			label: "Inicio",
-			icon: IconLayoutDashboard,
-			to: `dashboard`,
-		},
-		{ id: "chart", label: "Carta", icon: IconMenuOrder, to: `chart` },
-		{ id: "settings", label: "Ajustes", icon: IconSettings2, to: `settings` },
-	];
+const SECTIONS = [
+	{
+		id: "dashboard",
+		label: "Inicio",
+		icon: IconLayoutDashboard,
+		to: "dashboard",
+	},
+	{ id: "chart", label: "Carta", icon: IconMenuOrder, to: "chart" },
+	{ id: "settings", label: "Ajustes", icon: IconSettings2, to: "settings" },
+];
 
+export default function AdminHamburgerMenu({ selectedSlug, isOpen, onLogout }) {
 	return (
 		<>
 			<aside
@@ -29,7 +29,7 @@ export default function AdminHamburgerMenu({ selectedSlug, isOpen, onLogout }) {
 			>
 				<div className="p-4 sm:p-6">
 					<nav className="space-y-2">
-						{sections.map((section) => {
+						{SECTIONS.map((section) => {
 							const SectionIcon = section.icon;
 							const to = `/admin/${selectedSlug}/${section.to}`;
 
@@ -59,15 +59,13 @@ export default function AdminHamburgerMenu({ selectedSlug, isOpen, onLogout }) {
 						})}
 					</nav>
 
-					{onLogout ? (
-						<button
-							type="button"
-							onClick={onLogout}
-							className="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 transition hover:bg-red-100"
-						>
-							Cerrar sesión
-						</button>
-					) : null}
+					<button
+						type="button"
+						onClick={onLogout}
+						className="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 transition hover:bg-red-100"
+					>
+						Cerrar sesión
+					</button>
 				</div>
 			</aside>
 

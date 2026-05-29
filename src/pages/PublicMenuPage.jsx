@@ -1,10 +1,17 @@
 import { Header, DishCard } from "../components";
 import usePublicMenuNavigation from "../hooks/usePublicMenuNavigation.js";
+import { useEffect } from "react";
+import { registerScan } from "../services/scanService.js";
 
 export default function PublicMenuPage({
 	selectedRestaurant,
 	selectedMenuSlug,
 }) {
+	useEffect(() => {
+		if (selectedRestaurant?.id) {
+			registerScan(selectedRestaurant.id);
+		}
+	}, [selectedRestaurant?.id]);
 	const { categories, activeCategory, setActiveCategory, mainContentRef } =
 		usePublicMenuNavigation(selectedRestaurant, selectedMenuSlug);
 
@@ -36,21 +43,24 @@ export default function PublicMenuPage({
 									<h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
 										{category.name}
 									</h2>
+									{category.description && (
+										<p className="text-gray-600 text-sm sm:text-base">
+											{category.description}
+										</p>
+									)}
 								</div>
 
 								{/* Dishes Grid */}
 								{category.dishes.length > 0 ? (
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-										{category.dishes
-											.filter((d) => d.available !== false)
-											.map((dish) => (
-												<DishCard
-													key={dish.id}
-													dish={dish}
-													isActive={dish.available !== false}
-													accentColor={selectedRestaurant.accent}
-												/>
-											))}
+										{category.dishes.map((dish) => (
+											<DishCard
+												key={dish.id}
+												dish={dish}
+												isActive={dish.available !== false}
+												accentColor={selectedRestaurant.accent}
+											/>
+										))}
 									</div>
 								) : (
 									<div className="text-center py-8 sm:py-12">

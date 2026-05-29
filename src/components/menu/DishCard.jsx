@@ -68,7 +68,9 @@ const DishCard = ({ dish, isActive = true, compact = false }) => {
 							<p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">
 								Precio
 							</p>
-							<p className="text-lg font-semibold text-gray-950">${price}</p>
+							<p className="text-lg font-semibold text-gray-950">
+								{formatCurrency(price)}
+							</p>
 						</div>
 					) : (
 						<span />

@@ -1,60 +1,22 @@
 import { useState } from "react";
-import { Navigate, useLocation, Outlet } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import { Header, AdminHamburgerMenu } from "../components";
-import { useAdmin } from "../contexts/AdminContext.jsx";
 import useAuth from "../hooks/useAuth.js";
 
-export default function AdminPage({ selectedSlug }) {
-	const {
-		restaurants,
-		updateRestaurantField,
-		addMenu,
-		updateMenuField,
-		removeMenu,
-		updateCategoryField,
-		reorderCategory,
-		addCategory,
-		removeCategory,
-		addDish,
-		updateDishField,
-		reorderDish,
-		removeDish,
-		isPublished,
-		setIsPublished,
-	} = useAdmin();
+export default function AdminPage({ selectedRestaurant }) {
 	const { signOut } = useAuth();
 
-	const selectedRestaurant =
-		restaurants.find((restaurant) => restaurant.slug === selectedSlug) ??
-		restaurants[0];
-
-	// Ensure restaurant has menus array
-	const safeRestaurant = {
-		...selectedRestaurant,
-		menus: selectedRestaurant?.menus || [],
-	};
-
 	const [adminMenuOpen, setAdminMenuOpen] = useState(false);
-	const [activeMenuId, setActiveMenuId] = useState(
-		safeRestaurant.menus[0]?.id || null,
-	);
 
 	const location = useLocation();
-	const adminActiveSection = (() => {
-		try {
-			const parts = location.pathname.split("/").filter(Boolean);
-			// parts = ["admin", ":slug", "section", ...]
-			return parts[2] || "dashboard";
-		} catch {
-			return null;
-		}
-	})();
+	const parts = location.pathname.split("/").filter(Boolean);
+	const adminActiveSection = parts[2] || "dashboard";
 
 	return (
 		<div className="min-h-screen bg-gray-50">
 			{/* Header con hamburger menu a la derecha */}
 			<Header
-				selectedRestaurant={safeRestaurant}
+				selectedRestaurant={selectedRestaurant}
 				categories={[]}
 				adminMenuOpen={adminMenuOpen}
 				onAdminMenuToggle={() => setAdminMenuOpen(!adminMenuOpen)}
@@ -65,7 +27,7 @@ export default function AdminPage({ selectedSlug }) {
 			<div className="flex flex-col lg:flex-row">
 				{/* Hamburger Menu/Sidebar */}
 				<AdminHamburgerMenu
-					selectedSlug={selectedSlug}
+					selectedSlug={selectedRestaurant?.slug}
 					isOpen={adminMenuOpen}
 					onLogout={signOut}
 				/>

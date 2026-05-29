@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IconDeviceFloppy, IconTrash, IconX } from "@tabler/icons-react";
+import AdminToggle from "./AdminToggle.jsx";
 
 export default function DishEditModal({ dish, onClose, onSave, onDelete }) {
 	const [formData, setFormData] = useState({
@@ -87,7 +88,10 @@ export default function DishEditModal({ dish, onClose, onSave, onDelete }) {
 							step="0.01"
 							value={formData.price}
 							onChange={(e) =>
-								handleChange("price", parseFloat(e.target.value))
+								handleChange(
+									"price",
+									e.target.value === "" ? "" : parseFloat(e.target.value),
+								)
 							}
 							className="w-full rounded-2xl border border-black/10 bg-black/2 px-4 py-3 text-gray-950 focus:outline-none focus:ring-4 focus:ring-black/5"
 						/>
@@ -97,14 +101,10 @@ export default function DishEditModal({ dish, onClose, onSave, onDelete }) {
 						<span className="text-sm font-medium text-gray-900">
 							Disponible
 						</span>
-						<label className="flex items-center">
-							<input
-								type="checkbox"
-								checked={formData.available}
-								onChange={(e) => handleChange("available", e.target.checked)}
-								className="h-5 w-5 rounded border-black/20"
-							/>
-						</label>
+						<AdminToggle
+							checked={formData.available}
+							onChange={(val) => handleChange("available", val)}
+						/>
 					</div>
 
 					<div className="space-y-3 border-t border-black/5 pt-6">

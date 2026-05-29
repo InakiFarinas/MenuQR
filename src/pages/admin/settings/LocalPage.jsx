@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { IconBuildingStore, IconPlus } from "@tabler/icons-react";
+import { useRef, useState } from "react";
+import { IconBuildingStore, IconLoader2, IconPlus } from "@tabler/icons-react";
 import {
 	Avatar,
 	AvatarFallback,
@@ -14,6 +14,7 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { uploadImage } from "../../../services/storageService.js";
 
 export default function LocalPage({
 	selectedRestaurant,
@@ -21,31 +22,37 @@ export default function LocalPage({
 	onBack,
 }) {
 	const avatarInputRef = useRef(null);
+	const [isUploading, setIsUploading] = useState(false);
+	const [uploadError, setUploadError] = useState("");
+
 	const restaurantInitials = selectedRestaurant.name
 		.split(" ")
 		.map((word) => word[0])
 		.join("")
 		.slice(0, 2)
 		.toUpperCase();
+
 	function handleAvatarClick() {
 		avatarInputRef.current?.click();
 	}
 
-	function handleAvatarUpload(event) {
+	async function handleAvatarUpload(event) {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
-		const reader = new FileReader();
-		reader.onload = () => {
-			if (typeof reader.result === "string") {
-				updateRestaurantField(
-					selectedRestaurant.id,
-					"avatarImage",
-					reader.result,
-				);
-			}
-		};
-		reader.readAsDataURL(file);
+		setIsUploading(true);
+		setUploadError("");
+
+		const path = `${selectedRestaurant.id}/avatar`;
+		const { url, error } = await uploadImage(file, "avatars", path);
+
+		if (error) {
+			setUploadError("No se pudo subir la imagen. Intentá de nuevo.");
+		} else {
+			updateRestaurantField(selectedRestaurant.id, "avatarImage", url);
+		}
+
+		setIsUploading(false);
 		event.target.value = "";
 	}
 
@@ -91,6 +98,7 @@ export default function LocalPage({
 						<button
 							type="button"
 							onClick={handleAvatarClick}
+							disabled={isUploading}
 							aria-label="Subir avatar"
 						>
 							<Avatar size="lg">
@@ -102,12 +110,13 @@ export default function LocalPage({
 									{restaurantInitials}
 								</AvatarFallback>
 								<AvatarBadge>
-									<IconPlus />
+									{isUploading ? (
+										<IconLoader2 size={14} className="animate-spin" />
+									) : (
+										<IconPlus />
+									)}
 								</AvatarBadge>
 							</Avatar>
-							<div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gray-950/0 text-xs font-semibold text-white opacity-0 transition group-hover:bg-gray-950/35 group-hover:opacity-100">
-								Cambiar foto
-							</div>
 						</button>
 						<input
 							ref={avatarInputRef}
@@ -121,8 +130,13 @@ export default function LocalPage({
 								Avatar público
 							</p>
 							<p className="mt-1 text-sm text-gray-600">
-								Hacé clic en el avatar para subir una imagen.
+								{isUploading
+									? "Subiendo imagen..."
+									: "Hacé clic en el avatar para subir una imagen."}
 							</p>
+							{uploadError && (
+								<p className="mt-1 text-sm text-red-600">{uploadError}</p>
+							)}
 						</div>
 					</div>
 				</div>

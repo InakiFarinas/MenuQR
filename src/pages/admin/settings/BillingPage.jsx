@@ -22,11 +22,19 @@ export default function BillingPage({ selectedRestaurant, onBack }) {
 	useEffect(() => {
 		let mounted = true;
 
-		fetchPlans().then((data) => {
-			if (!mounted) return;
-			setPlans(data);
-			setIsLoading(false);
-		});
+		fetchPlans()
+			.then((data) => {
+				if (!mounted) return;
+				setPlans(data);
+			})
+			.catch(() => {
+				if (!mounted) return;
+				setPlans([]);
+			})
+			.finally(() => {
+				if (!mounted) return;
+				setIsLoading(false);
+			});
 
 		return () => {
 			mounted = false;
@@ -39,11 +47,10 @@ export default function BillingPage({ selectedRestaurant, onBack }) {
 		[plans, selectedRestaurant?.planId],
 	);
 
-	const nextPaymentDate = useMemo(() => {
+	const nextPaymentMonth = useMemo(() => {
 		const date = new Date();
 		date.setDate(15);
 		return new Intl.DateTimeFormat("es-ES", {
-			day: "numeric",
 			month: "long",
 		}).format(date);
 	}, []);
@@ -174,7 +181,7 @@ export default function BillingPage({ selectedRestaurant, onBack }) {
 							</div>
 							<div>
 								<p className="text-gray-600">Próximo pago</p>
-								<p className="mt-1 text-gray-950">15 de {nextPaymentDate}</p>
+								<p className="mt-1 text-gray-950">15 de {nextPaymentMonth}</p>
 							</div>
 							<div>
 								<p className="text-gray-600">Estado</p>

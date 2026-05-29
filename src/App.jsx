@@ -1,21 +1,50 @@
 import { useMemo } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import PublicRoute from "./routes/PublicRoute.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
 import AdminLoginRoute from "./routes/AdminLoginRoute.jsx";
 import SettingsPage from "./pages/admin/SettingsPage.jsx";
+import DashboardPage from "./pages/admin/DashboardPage.jsx";
 import useRestaurants from "./hooks/useRestaurants.js";
 import { AdminProvider } from "./contexts/AdminContext.jsx";
+import { useAdmin } from "./contexts/useAdmin.js";
 import { LoadingScreen, NoRestaurants } from "./components/ui/index.js";
 import {
 	BillingWrapper,
 	BrandWrapper,
-	ChartWrapper,
-	DashboardWrapper,
 	InvoicesWrapper,
 	LocalWrapper,
 	SettingsIndexWrapper,
 } from "./routes/admin/index.js";
+import ChartPage from "./pages/admin/ChartPage.jsx";
+
+function KeyedAdminRoute() {
+	const { slug } = useParams();
+	return <AdminRoute key={slug} />;
+}
+
+function KeyedPublicRoute() {
+	const { restaurantSlug } = useParams();
+	return <PublicRoute key={restaurantSlug} />;
+}
+
+function PublicHomeRoute() {
+	const { restaurants, isLoading } = useAdmin();
+
+	if (isLoading) return <LoadingScreen />;
+	if (restaurants.length === 0) return <NoRestaurants />;
+
+	return <Navigate to={`/${restaurants[0].slug}`} replace />;
+}
+
+function AdminHomeRoute() {
+	const { restaurants, isLoading } = useAdmin();
+
+	if (isLoading) return <LoadingScreen />;
+	if (restaurants.length === 0) return <NoRestaurants />;
+
+	return <Navigate to={`/admin/${restaurants[0].slug}`} replace />;
+}
 
 export default function App() {
 	const {
@@ -23,7 +52,6 @@ export default function App() {
 		isLoading,
 		isPublished,
 		setIsPublished,
-		loadRestaurantDetails,
 		addMenu,
 		updateMenuField,
 		removeMenu,
@@ -44,7 +72,6 @@ export default function App() {
 			isLoading,
 			isPublished,
 			setIsPublished,
-			loadRestaurantDetails,
 			addMenu,
 			updateMenuField,
 			removeMenu,
@@ -63,7 +90,6 @@ export default function App() {
 			isLoading,
 			isPublished,
 			setIsPublished,
-			loadRestaurantDetails,
 			addMenu,
 			updateMenuField,
 			removeMenu,
@@ -79,28 +105,21 @@ export default function App() {
 		],
 	);
 
-	if (isLoading) return <LoadingScreen />;
-
-	if (restaurants.length === 0) return <NoRestaurants />;
-
 	return (
 		<AdminProvider value={adminContextValue}>
 			<Routes>
+				<Route path="/" element={<PublicHomeRoute />} />
+				<Route path="/:restaurantSlug" element={<KeyedPublicRoute />} />
 				<Route
-					path="/"
-					element={<Navigate to={`/${restaurants[0].slug}`} replace />}
+					path="/:restaurantSlug/:menuSlug"
+					element={<KeyedPublicRoute />}
 				/>
-				<Route path="/:restaurantSlug" element={<PublicRoute />} />
-				<Route path="/:restaurantSlug/:menuSlug" element={<PublicRoute />} />
-				<Route
-					path="/admin"
-					element={<Navigate to={`/admin/${restaurants[0].slug}`} replace />}
-				/>
+				<Route path="/admin" element={<AdminHomeRoute />} />
 				<Route path="/admin/:slug/login" element={<AdminLoginRoute />} />
-				<Route path="/admin/:slug/*" element={<AdminRoute />}>
+				<Route path="/admin/:slug/*" element={<KeyedAdminRoute />}>
 					<Route index element={<Navigate to="dashboard" replace />} />
-					<Route path="dashboard" element={<DashboardWrapper />} />
-					<Route path="chart" element={<ChartWrapper />} />
+					<Route path="dashboard" element={<DashboardPage />} />
+					<Route path="chart" element={<ChartPage />} />
 					<Route path="settings" element={<SettingsPage />}>
 						<Route index element={<SettingsIndexWrapper />} />
 						<Route path="local" element={<LocalWrapper />} />

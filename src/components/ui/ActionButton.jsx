@@ -7,9 +7,13 @@ export default function ActionButton({
 	const styles =
 		type === "edit"
 			? "border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-			: "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100";
+			: type === "qr"
+				? "border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+				: "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100";
 
-	const computedAria = ariaLabel || (type === "edit" ? "Editar" : "Eliminar");
+	const computedAria =
+		ariaLabel ||
+		(type === "edit" ? "Editar" : type === "qr" ? "Ver QR" : "Eliminar");
 
 	return (
 		<button
